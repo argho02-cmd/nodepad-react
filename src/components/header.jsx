@@ -13,6 +13,20 @@ export default function Header(props) {
     return (
         <nav className={`navbar navbar-expand-lg navbar-${props.mode} bg-${props.theme}`}>
             <div className="container-fluid">
+                <button
+                    className="btn me-2"
+                    onClick={props.toggleSidebar}
+                    type="button"
+                    style={{
+                        fontSize: "24px",
+                        lineHeight: "1",
+                        paddingTop: "0 10px",
+                        color: props.mode ==="light" && props.theme === "light" ? "black" : "white",
+                        border: "none"
+
+                    }}
+                    > &#9776;
+                </button>
 
                 {/* Website Title Input */}
                 <input
@@ -24,8 +38,8 @@ export default function Header(props) {
                 />
 
                 {/* Navigation Links */}
-                <ul className="navbar-nav me-auto">
-                    <li className="nav-item">
+                <ul className="navbar-nav d-flex flex-row me-auto">
+                    <li className="nav-item me-3">
                         <Link className="nav-link" to="/">Home</Link>
                     </li>
 
