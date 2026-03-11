@@ -1,22 +1,25 @@
-export default function Sidebar({ isOpen, toggleSidebar, mode }) {
+import { useState } from "react";
+export default function Sidebar({ isOpen, toggleSidebar, mode, notes }) {
+    const [search, setSearch] = useState("");
 
     return (
         <>
             {/* Overlay */}
-            {isOpen && (
-                <div
-                    onClick={toggleSidebar}
-                    style={{
-                        position: "fixed",
-                        top: 0,
-                        left: 0,
-                        width: "100%",
-                        height: "100%",
-                        backgroundColor: "rgba(0,0,0,0.3)",
-                        zIndex: 1500
-                    }}
-                />
-            )}
+            <div
+                onClick={toggleSidebar}
+                style={{
+                    position: "fixed",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    height: "100%",
+                    backgroundColor: isOpen ? "rgba(0,0,0,0.35)" : "transparent",
+                    opacity: isOpen ? 1 : 0,
+                    pointerEvents: isOpen ? "auto" : "none",
+                    transition: "opacity 0.3s ease",
+                    zIndex: 1500
+                }}
+            />
 
             {/* Sidebar */}
             <div
@@ -31,12 +34,14 @@ export default function Sidebar({ isOpen, toggleSidebar, mode }) {
                     transform: isOpen ? "translateX(0)" : "translateX(-100%)",
                     transition: "transform 0.3s ease",
                     zIndex: 2000,
-                    boxShadow: "2px 0px 10px rgba(0,0,0,0.3)"
+                    boxShadow: "3px 0px 12px rgba(0,0,0,0.25)",
+                    paddingTop: "20px"
                 }}
             >
 
-                <div className="d-flex justify-content-between align-items-center p-3 border-bottom">
-                    <h5>My Notes</h5>
+                {/* Sidebar Title */}
+                <div className="px-4 mb-4 d-flex justify-content-between align-items-center">
+                    <h5 style={{fontWeight:"600"}}>My Notes</h5>
 
                     <button
                         className="btn btn-sm btn-danger"
@@ -45,17 +50,37 @@ export default function Sidebar({ isOpen, toggleSidebar, mode }) {
                         ✕
                     </button>
                 </div>
+                <input
+                    type="text"
+                    placeholder="Search notes..."
+                    className="form-control mb-3"
+                    value={search}
+                    onChange={(e)=>setSearch(e.target.value)}
+                />
 
-                <div className="p-3">
+                {/* Menu */}
+                <div className="px-3">
+                    {notes && notes
+                        .filter(note =>
+                            note.title.toLowerCase().includes(search.toLowerCase())
+                        )
+                        .map(note => (
 
-                    <p>🏠 Home</p>
-                    <p>📄 Saved Notes</p>
-                    <p>📜 History</p>
-                    <p>⚙ Settings</p>
+                            <div
+                                key={note.id}
+                                style={{
+                                    padding:"10px",
+                                    borderBottom:"1px solid #ddd",
+                                    cursor:"pointer"
+                                }}
+                            >
+                                {note.title}
+                            </div>
+
+                        ))}
 
                 </div>
-
-            </div>
+                </div>
         </>
     );
 }

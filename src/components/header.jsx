@@ -7,11 +7,11 @@ export default function Header(props) {
     const [title, setTitle] = useState("");
 
     const handleTitleChange = (e) => {
+        e.preventDefault();
         setTitle(e.target.value);
     }
 
-    return (
-        <nav className={`navbar navbar-expand-lg navbar-${props.mode} bg-${props.theme}`}>
+    return (<nav className={`navbar navbar-expand-lg navbar-${props.mode} bg-${props.theme}`}>
             <div className="container-fluid">
                 <button
                     className="btn me-2"
@@ -21,11 +21,11 @@ export default function Header(props) {
                         fontSize: "24px",
                         lineHeight: "1",
                         paddingTop: "0 10px",
-                        color: props.mode ==="light" && props.theme === "light" ? "black" : "white",
+                        color: props.mode === "light" && props.theme === "light" ? "black" : "white",
                         border: "none"
 
                     }}
-                    > &#9776;
+                > &#9776;
                 </button>
 
                 {/* Website Title Input */}
@@ -115,6 +115,5 @@ export default function Header(props) {
                 </div>
 
             </div>
-        </nav>
-    );
+        </nav>);
 }
