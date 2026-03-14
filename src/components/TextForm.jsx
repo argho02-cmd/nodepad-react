@@ -1,18 +1,17 @@
-import React, {useState} from "react"
+import React from "react"
 
 export default function TextForm(props) {
-    const [text, setText] = useState('Enter the text here');
 
     const handleOnChange = (event) => {
-        setText(event.target.value);
+        props.setText(event.target.value);
     }
 
     const handleToUpper = () => {
-        let newText = text.toUpperCase();
-        setText(newText)
+        let newText = props.text.toUpperCase();
+        props.setText(newText)
     }
     const HandleOnClear = () => {
-        setText('')
+        props.setText('')
     }
     return (<div style={{
             color: props.mode === 'dark' ? 'white' : 'black'
@@ -26,27 +25,27 @@ export default function TextForm(props) {
                         color: props.mode === 'dark' ? 'white' : 'black'
                     }}
                     className="form-control"
-                    value={text}
+                    value={props.text}
                     onChange={handleOnChange}
                     rows="5"
                 />
             </div>
             <div className="container my-3">
-                <button disabled={text.length === 0} onClick={handleToUpper} className="btn btn-primary mx-1">Convert to
+                <button disabled={props.text.length === 0} onClick={handleToUpper} className="btn btn-primary mx-1">Convert to
                     Uppercase
                 </button>
-                <button disabled={text.length === 0} onClick={HandleOnClear} className="btn btn-primary mx-1">Clear
+                <button disabled={props.text.length === 0} onClick={HandleOnClear} className="btn btn-primary mx-1">Clear
                 </button>
             </div>
             <div className="container my-3">
                 <h3> Your text summary</h3>
-                <p> {text.split(" ").filter((element) => {
+                <p> {props.text.split(" ").filter((element) => {
                     return element.length !== 0
-                }).length} words and {text.length} characters</p>
+                }).length} words and {props.text.length} characters</p>
             </div>
             <button className="btn btn-primary mx-1"
-                    disabled={text.length === 0}
-                    onClick={() => props.saveNotes(text)}>Save Note
+                    disabled={props.text.length === 0}
+                    onClick={() => props.saveNotes(props.text)}>Save Note
             </button>
 
 
