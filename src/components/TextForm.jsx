@@ -22,12 +22,13 @@ export default function TextForm(props) {
                 <textarea
                     style={{
                         backgroundColor: props.mode === 'dark' ? '#333' : 'white',
-                        color: props.mode === 'dark' ? 'white' : 'black'
+                        color: props.mode === 'dark' ? 'white' : 'black',
                     }}
                     className="form-control"
                     value={props.text}
                     onChange={handleOnChange}
                     rows="5"
+                    placeholder="Write some notes"
                 />
             </div>
             <div className="container my-3">

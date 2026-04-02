@@ -114,6 +114,21 @@ export default function Header(props) {
                     </label>
                 </div>
 
+                {props.currentUser && (
+                    <div className={`d-flex align-items-center ms-3 text-${props.mode === "light" ? "dark" : "light"}`}>
+                        <span className="me-3">
+                            {props.currentUser.username || props.currentUser.email}
+                        </span>
+                        <button
+                            type="button"
+                            className={`btn btn-sm ${props.mode === "light" ? "btn-outline-dark" : "btn-outline-light"}`}
+                            onClick={props.onLogout}
+                        >
+                            Logout
+                        </button>
+                    </div>
+                )}
+
             </div>
         </nav>);
 }

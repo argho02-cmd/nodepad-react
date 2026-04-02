@@ -33,7 +33,7 @@ export default function Sidebar({ isOpen, toggleSidebar, mode, notes, onNoteSele
                     backgroundColor: isOpen ? "rgba(0,0,0,0.35)" : "transparent",
                     opacity: isOpen ? 1 : 0,
                     pointerEvents: isOpen ? "auto" : "none",
-                    transition: "opacity 0.3s ease",
+                    transition: "opacity 0.1s ease",
                     zIndex: 1500
                 }}
             />
@@ -108,12 +108,11 @@ export default function Sidebar({ isOpen, toggleSidebar, mode, notes, onNoteSele
                                     style={{
                                         color: mode === 'dark' ? '#ff4d4d' : '#dc3545',
                                         border: 'none',
-                                        fontSize: '1.2rem',
-                                        padding: '0 5px'
+                                        background: 'transparent'
                                     }}
                                     title="Delete Note"
                                 >
-                                    ⋮
+                                    <i className="bi bi-trash"></i>
                                 </button>
                             </div>
                         ))}
