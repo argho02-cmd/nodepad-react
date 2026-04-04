@@ -1,14 +1,31 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080";
+const API_BASE_URL =
+    import.meta.env.VITE_API_BASE_URL ??
+    (import.meta.env.DEV ? "http://localhost:8080" : "/api");
 const SESSION_KEY = "auth_session";
+const REQUEST_TIMEOUT_MS = 15000;
 
 async function postJson(path, payload) {
-    const response = await fetch(`${API_BASE_URL}${path}`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    let response;
+
+    try {
+        response = await fetch(`${API_BASE_URL}${path}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+            signal: controller.signal,
+        });
+    } catch (error) {
+        if (error.name === "AbortError") {
+            throw new Error("Request timed out. Check backend mail or deployment configuration.");
+        }
+        throw error;
+    } finally {
+        clearTimeout(timeoutId);
+    }
 
     const rawBody = await response.text();
     let data = {};

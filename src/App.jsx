@@ -255,7 +255,7 @@ function App() {
                         <p className="auth-subtitle">
                             {authStage === "verify"
                                 ? `Enter the 6-digit code sent to ${authForm.email}.`
-                                : "Your React frontend now connects to the Spring Boot backend on localhost:8080."}
+                                : "Use your account to access the full stack notes workspace."}
                         </p>
                     </div>
 
