@@ -14,13 +14,19 @@ import {
     storeSession,
     verifyUser,
 } from "./api/auth.js";
+import {
+    createNote,
+    deleteNote,
+    fetchNotes,
+    updateNote,
+} from "./api/notes.js";
 
 function App() {
     const [mode, setMode] = useState("light");
     const [alert, setAlert] = useState(null);
     const [theme, setTheme] = useState("primary");
     const [notes, setNotes] = useState([]);
-    const [activeNote, setActiveNote] = useState(null); // Tracks ID of note being edited
+    const [activeNote, setActiveNote] = useState(null);
     const [text, setText] = useState("");
     const [authMode, setAuthMode] = useState("login");
     const [authStage, setAuthStage] = useState("credentials");
@@ -32,87 +38,101 @@ function App() {
         code: "",
     });
     const [authLoading, setAuthLoading] = useState(false);
+    const [showSidebar, setShowSidebar] = useState(false);
 
-    // Load notes from localStorage on startup
-    useEffect(() => {
-        const getNotes = localStorage.getItem("notes");
-        if (getNotes) {
-            try {
-                setNotes(JSON.parse(getNotes));
-            } catch (error) {
-                console.error("Error parsing notes:", error);
-                setNotes([]);
-            }
-        }
-    }, []);
-
-    // Save notes to localStorage whenever they change
-    useEffect(() => {
-        localStorage.setItem("notes", JSON.stringify(notes));
-    }, [notes]);
-
-    // --- SMART SAVE LOGIC ---
-    const saveNotes = (content) => {
-        if (content.trim() === "") return;
-
-        if (activeNote) {
-            // Case 1: Updating an existing note
-            setNotes((prevNotes) =>
-                prevNotes.map((note) =>
-                    note.id === activeNote
-                        ? { ...note, title: content.substring(0, 25), content: content }
-                        : note
-                )
-            );
-            onAlert("Note updated successfully");
-        } else {
-            // Case 2: Creating a brand-new note
-            const newNote = {
-                title: content.substring(0, 25),
-                id: Date.now(),
-                content: content,
-                date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
-            };
-            setNotes((prevNotes) => [newNote, ...prevNotes]);
-            setActiveNote(newNote.id); // Set the new note as the active one
-            onAlert("New note saved");
-        }
+    const onAlert = (message, type = "success") => {
+        setAlert({ msg: message, type });
+        setTimeout(() => setAlert(null), 1500);
     };
 
-    // --- SIDEBAR LOGIC ---
-    const [showSidebar, setShowSidebar] = useState(false);
+    useEffect(() => {
+        if (!session?.token) {
+            setNotes([]);
+            setText("");
+            setActiveNote(null);
+            return;
+        }
+
+        let isCancelled = false;
+
+        const loadNotes = async () => {
+            try {
+                const nextNotes = await fetchNotes(session.token);
+                if (!isCancelled) {
+                    setNotes(nextNotes);
+                    setText("");
+                    setActiveNote(null);
+                }
+            } catch (error) {
+                if (!isCancelled) {
+                    onAlert(error.message || "Failed to load notes", "danger");
+                }
+            }
+        };
+
+        loadNotes();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [session?.token]);
+
+    const saveNotes = async (content) => {
+        if (content.trim() === "") return;
+
+        try {
+            if (activeNote) {
+                const updatedNote = await updateNote(session.token, activeNote, content);
+                setNotes((prevNotes) => [
+                    updatedNote,
+                    ...prevNotes.filter((note) => note.id !== activeNote),
+                ]);
+                setActiveNote(updatedNote.id);
+                onAlert("Note updated successfully");
+                return;
+            }
+
+            const newNote = await createNote(session.token, content);
+            setNotes((prevNotes) => [newNote, ...prevNotes]);
+            setActiveNote(newNote.id);
+            setText(newNote.content);
+            onAlert("New note saved");
+        } catch (error) {
+            onAlert(error.message || "Failed to save note", "danger");
+        }
+    };
 
     const toggleSidebar = () => {
         setShowSidebar(!showSidebar);
     };
 
     const onNoteSelect = (id) => {
-        const selectedNote = notes.find(note => note.id === id);
+        const selectedNote = notes.find((note) => note.id === id);
         if (selectedNote) {
             setText(selectedNote.content);
-            setActiveNote(id); // Remembers we are editing this note
+            setActiveNote(id);
             setShowSidebar(false);
         }
     };
 
-    // Reset editor for a new note
     const handleNewNote = () => {
         setText("");
-        setActiveNote(null); // Clears active status so next save creates a NEW note
+        setActiveNote(null);
         setShowSidebar(false);
     };
-    // Just add this simple function to App.jsx
-    const updateNotesAfterDelete = (updatedNotes) => {
-        setNotes(updatedNotes);
+
+    const handleDeleteNote = async (noteId) => {
+        try {
+            await deleteNote(session.token, noteId);
+            setNotes((prevNotes) => prevNotes.filter((note) => note.id !== noteId));
+            onAlert("Note deleted successfully");
+        } catch (error) {
+            onAlert(error.message || "Failed to delete note", "danger");
+        }
     };
 
     const changeTheme = (color) => {
         setTheme(color);
-    };
-
-    const onAlert = (message, type = "success") => {
-        setAlert({ msg: message, type: type });
-        setTimeout(() => setAlert(null), 1500);
     };
 
     const toggleMode = () => {
@@ -166,6 +186,9 @@ function App() {
                 };
 
                 storeSession(nextSession);
+                setNotes([]);
+                setText("");
+                setActiveNote(null);
                 setSession(nextSession);
                 setAuthStage("credentials");
                 setAuthForm({
@@ -210,6 +233,9 @@ function App() {
             };
 
             storeSession(nextSession);
+            setNotes([]);
+            setText("");
+            setActiveNote(null);
             setSession(nextSession);
             setAuthForm({
                 username: "",
@@ -218,10 +244,7 @@ function App() {
                 code: "",
             });
 
-            onAlert(
-                response.message || "Logged in successfully",
-                "success"
-            );
+            onAlert(response.message || "Logged in successfully", "success");
         } catch (error) {
             onAlert(error.message || "Authentication failed", "danger");
         } finally {
@@ -232,6 +255,9 @@ function App() {
     const handleLogout = () => {
         clearStoredSession();
         setSession(null);
+        setNotes([]);
+        setText("");
+        setActiveNote(null);
         setAuthMode("login");
         setAuthStage("credentials");
         setAuthForm({
@@ -385,20 +411,19 @@ function App() {
                 <Alert alert={alert} mode={mode} />
             </div>
 
-            <div className={`sidebar-container ${showSidebar ? '' : 'sidebar-hidden'}`}>
+            <div className={`sidebar-container ${showSidebar ? "" : "sidebar-hidden"}`}>
                 <Sidebar
                     isOpen={showSidebar}
                     mode={mode}
                     theme={theme}
                     notes={notes}
-                    setNotes={setNotes}
                     setText={setText}
                     activeNote={activeNote}
                     setActiveNote={setActiveNote}
                     toggleSidebar={toggleSidebar}
                     onNoteSelect={onNoteSelect}
-                    onNewNote={handleNewNote} // Pass the reset function
-                    updateNotAfterDelete={updateNotesAfterDelete}
+                    onNewNote={handleNewNote}
+                    onDeleteNote={handleDeleteNote}
                 />
             </div>
 
